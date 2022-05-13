@@ -7,6 +7,11 @@ from math import hypot
 import numpy as np
 
 
+# Root to images dir, note that images MUST be png with transparent background
+# Image size doesnt matter as it is auto-scaled
+ROOT = "some_dir\\Hats"
+
+
 class FaceMeshDetector():
     def __init__(self, staticMode=False, maxFaces=1, minDetectionCon=0.5, minTrackCon=0.5):
 
@@ -36,15 +41,18 @@ class FaceMeshDetector():
                 for id, lm in enumerate(faceLms.landmark):
                     ih, iw, ic = img.shape
                     x, y = int(lm.x * iw), int(lm.y * ih)
+                    # Uncomment this to find your points
                     # cv2.putText(img, str(id), (x, y), cv2.FONT_HERSHEY_PLAIN,
                     #           0.7, (0, 255, 0), 1)
 
                     face.append([x, y])
                 faces.append(face)
                 for face in faces:
+                    # 54 and 284 are the points of forehead, you can find your points via cv2.putText up
                     self.controlPoints.append([face[54], face[284]])
         return img
 
+    # Images still being black after overlay, open Merge request if you managed to solve this
     def transparentOverlay(self, img, overlayImage):
         if not len(self.controlPoints):
             return img
@@ -70,7 +78,6 @@ class FaceMeshDetector():
 
         img[yLeft - hatHeight: yLeft, xLeft:xLeft + hatWidth] = bg
 
-
         return img
 
 
@@ -80,11 +87,11 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 
-    listImg = os.listdir("D:\\Files\\TMM Masks\\Hats")
+    listImg = os.listdir(ROOT)
     print(listImg)
     imgList = []
     for imgPath in listImg:
-        img = cv2.imread(f'D:\\Files\\TMM Masks\\Hats\\{imgPath}', cv2.IMREAD_UNCHANGED)
+        img = cv2.imread(f'{ROOT}\\{imgPath}', cv2.IMREAD_UNCHANGED)
         imgList.append(img)
     print(len(imgList))
     indexImg = 0
@@ -94,6 +101,7 @@ def main():
 
     while True:
         success, img = cap.read()
+        # Set draw=True if you would like to see face mesh
         img = detector.findFaceMesh(img, draw=False)
 
         if (len(imgList)):
